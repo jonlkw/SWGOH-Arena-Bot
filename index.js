@@ -8,20 +8,17 @@ let rankTable;
 
 let rankList = [];
 
-let bot = new Client({
-  // fetchAllMembers: true, // Remove this if the bot is in large guilds.
-  presence: {
-    status: 'online',
-    activity: {
-      name: `${config.prefix}help`,
-      type: 'LISTENING'
-    }
-  }
-});
+let bot = new Client();
 
 let extractVar = (message) => {
   let [userIcon = '', name = '', movement = '', payoutIn = ''] = message.split('`');
-  let [, , , movedFrom = '', , movedTo = ''] = movement.split(' ');
+
+  let movedFrom = '', movedTo = '';
+  if (movement.includes("is at")) {
+    [, , , movedTo = ''] = movement.split(' ');
+  } else {
+    [, , , movedFrom = '', , movedTo = ''] = movement.split(' ');
+  }
   [movedTo] = movedTo.split('.');
 
   let discordId = '';
@@ -54,10 +51,25 @@ let updateRankList = (movement_array) => {
 };
 
 let createRankTable = () => {
+  let fields = [];
   let msg = '';
+
+  let pushToFields = () => {
+    const l = fields.length;
+    fields.push({name: `${l*10+1}-${l*10+10}`, value: msg, inline: false});
+  }
+
+  if (rankList.length <= 0) msg = '1. ';
 
   for (let i = 0; i < rankList.length; i++) {
 
+    // for every 10 increment, push to the fields array and start fresh
+    if (i % 10 == 0 && msg) {
+      pushToFields();
+      msg = '';
+    }
+
+    // stop at rank 50. 
     if (i >= 50) break;
 
     if (!rankList[i]) {
@@ -67,18 +79,20 @@ let createRankTable = () => {
 
     let { userIcon = '', name = '' } = rankList[i];
 
-    msg += (i + 1) + '. ' + userIcon + ' ' + name + "\n";
+    msg += `${i + 1}. ${userIcon} ${name} \n`;
+
   }
 
+  if (msg != '') pushToFields();
 
-  if (msg == '') msg += '1. ';
+  // console.log(fields);
 
   let embed = new MessageEmbed()
     .setTitle('Live Ranking Table')
     .setDescription('This is a real-time table of the arena table.')
     .setColor('GREEN')
     .setThumbnail('https://cdn.discordapp.com/attachments/585694214885605389/721040657971675236/PicsArt_06-12-09.35.24.jpg')
-    .addField('-', msg)
+    .addFields(fields)
     .addField('-', "Bot provided by <@220562478910799872>, GL of [No Name a Guild Has](https://swgoh.gg/g/62012/no-name-a-guild-has/).\nLearn more about our guild at https://discord.gg/c5BxqSVhVS")
     .setTimestamp()
     .setFooter('@Jonnnnn#2088', 'https://cdn.discordapp.com/avatars/220562478910799872/2652c01cfae2fb2b21978561478a5c5b.jpg')
@@ -103,14 +117,25 @@ bot.on('message', async message => {
   if (debug) console.log(message);
 
   if (
-    (message.author.bot || debug) &&
+    (message.author.bot && rankTable || debug) &&
     message.content.includes('climbed from') || 
-    message.content.includes('dropped from')
+    message.content.includes('dropped from') ||
+    message.content.includes('is at')
     ) {
-    let info = extractVar(message.content);
-    console.log(info);
-    // update the list
-    updateRankList(info);
+    let info = {};
+    if (message.content.includes('is at')) {
+      let messages = message.content.split("\n");
+      messages.forEach((element) => {
+        info = extractVar(element);
+        // update the list
+        updateRankList(info);
+      });
+    } else {
+      info = extractVar(message.content);
+      console.log(info);
+      // update the list
+      updateRankList(info);
+    }
     // Create the Embed.
     let embded = createRankTable();
 
@@ -128,10 +153,8 @@ bot.on('message', async message => {
     switch (command) {
 
       case 'init':
-        console.log(rankList);
         let embded = createRankTable();
         rankTable = await message.channel.send(embded);
-        console.log(rankTable.id);
         break;
 
       case 'ping':
