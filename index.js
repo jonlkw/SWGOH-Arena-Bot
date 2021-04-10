@@ -102,7 +102,11 @@ bot.on('message', async message => {
   
   if (debug) console.log(message);
 
-  if (message.content.includes('climbed from') || message.content.includes('dropped from')) {
+  if (
+    (message.author.bot || debug) &&
+    message.content.includes('climbed from') || 
+    message.content.includes('dropped from')
+    ) {
     let info = extractVar(message.content);
     console.log(info);
     // update the list
@@ -114,7 +118,7 @@ bot.on('message', async message => {
     await rankTable.edit(embded);
   }
 
-  // updateRankingTable();
+  if (message.author.id != '220562478910799872') return;
 
   // Check for command
   if (message.content.startsWith(config.prefix)) {
