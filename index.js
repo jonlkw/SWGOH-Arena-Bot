@@ -190,16 +190,12 @@ bot.on('message', async message => {
     switch (command) {
 
       case 'init':
-        if (!rankTable) {
-          let embded = createRankTable();
-          rankTable = await message.channel.send(embded);
-          // console.log(rankTable);
-          db.set("message_id", rankTable.id);
-          db.set("channel_id", rankTable.channel.id);
-          console.log('rank table created');
-        } else {
-          console.log('rank table already exists');
-        }
+        let embded = createRankTable();
+        rankTable = await message.channel.send(embded);
+        // console.log(rankTable);
+        db.set("message_id", rankTable.id);
+        db.set("channel_id", rankTable.channel.id);
+        console.log('rank table created');
         break;
 
       case 'ping':
