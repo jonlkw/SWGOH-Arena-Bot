@@ -2,7 +2,7 @@ const { Client, MessageEmbed } = require('discord.js');
 const config = require('./config');
 const commands = require('./help');
 
-const debug = false;
+const debug = config.debug || false;
 
 let rankTable;
 
@@ -36,13 +36,18 @@ let extractVar = (message) => {
     name: name,
     movedFrom: movedFrom,
     movedTo: movedTo,
-    payoutIn: payoutIn
+    payoutIn: payoutIn,
+    timeLastMoved: Date.now()
   };
 
   return rtn;
 }
 
 let updateRankList = (movement_array) => {
+
+  // do nothing if the player is already in that rank. 
+  if (rankList[movement_array.movedTo - 1] && rankList[movement_array.movedTo - 1].name == movement_array.name) return;
+
   // add movement to ranklist
   rankList[movement_array.movedTo - 1] = movement_array;
 
@@ -77,9 +82,28 @@ let createRankTable = () => {
       continue;
     }
 
-    let { userIcon = '', name = '' } = rankList[i];
+    let { userIcon = '', name = '', movedFrom, movedTo, timeLastMoved } = rankList[i];
+    movedFrom = parseInt(movedFrom);
+    movedTo = parseInt(movedTo);
 
-    msg += `${i + 1}. ${userIcon} ${name} \n`;
+    let timeToShowMovement = 9e5; // 15 minutes
+
+    let n;
+    // console.log(`Time difference for ${name} is ${Date.now() - timeLastMoved}`);
+    if (Date.now() - timeLastMoved <= timeToShowMovement && movedFrom != movedTo && movedFrom) {
+       if (movedFrom > movedTo) {
+         // moved up in the last 15 minutes
+         n = config.climb_emoji || ':arrow_up:';
+       } else {
+         // moved down
+         n = config.fall_emoji || ':arrow_down:';
+       }
+    } else {
+      // hasn't moved recently. just show the position number. 
+      n = i+1;
+    }
+
+    msg += `${n}. ${userIcon} ${name} \n`;
 
   }
 
@@ -114,7 +138,7 @@ bot.on('message', async message => {
   // stop execution if the message came from the bot. 
   if (message.author == bot.user) return;
   
-  if (debug) console.log(message);
+  // if (debug) console.log(message);
 
   if (
     (message.author.bot && rankTable || debug) &&
@@ -123,6 +147,7 @@ bot.on('message', async message => {
     message.content.includes('is at')
     ) {
     let info = {};
+    if (debug) console.log(message.content);
     if (message.content.includes('is at')) {
       let messages = message.content.split("\n");
       messages.forEach((element) => {
