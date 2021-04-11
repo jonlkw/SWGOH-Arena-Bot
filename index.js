@@ -1,12 +1,15 @@
 const { Client, MessageEmbed } = require('discord.js');
 const config = require('./config');
 const commands = require('./help');
+const Database = require("./db");
 
 const debug = config.debug || false;
 
 let rankTable;
 
 let rankList = [];
+
+const db = new Database();
 
 let bot = new Client();
 
@@ -124,8 +127,17 @@ let createRankTable = () => {
   return embed;
 };
 
-bot.on('ready', () => {
+bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag}.`);
+
+  let msg_id = await db.get("message_id");
+  let channel_id = await db.get("channel_id");
+  if (msg_id && channel_id) {
+    let channel = await bot.channels.fetch(channel_id);
+    rankTable = await channel.messages.fetch(msg_id);
+    // console.log(rankTable);
+    console.log('rank table loaded from database');
+  }
 
   if (debug) {
     rankList[0] = { name: 'Jonnnnn' };
@@ -178,8 +190,16 @@ bot.on('message', async message => {
     switch (command) {
 
       case 'init':
-        let embded = createRankTable();
-        rankTable = await message.channel.send(embded);
+        if (!rankTable) {
+          let embded = createRankTable();
+          rankTable = await message.channel.send(embded);
+          // console.log(rankTable);
+          db.set("message_id", rankTable.id);
+          db.set("channel_id", rankTable.channel.id);
+          console.log('rank table created');
+        } else {
+          console.log('rank table already exists');
+        }
         break;
 
       case 'ping':
