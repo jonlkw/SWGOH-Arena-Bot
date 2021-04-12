@@ -1,7 +1,7 @@
 const { Client, MessageEmbed } = require('discord.js');
 const config = require('./config');
 const commands = require('./help');
-const Database = require("./db");
+const Database = require("@replit/database");
 
 const debug = config.debug || false;
 
@@ -9,7 +9,7 @@ let rankTable;
 
 let rankList = [];
 
-const db = new Database();
+const db = new Database(config.replit_database_url || '');
 
 let bot = new Client();
 
@@ -56,6 +56,9 @@ let updateRankList = (movement_array) => {
 
   // delete previous position.
   if (rankList[movement_array.movedFrom - 1] && rankList[movement_array.movedFrom - 1].name == movement_array.name) delete rankList[movement_array.movedFrom - 1];
+
+  // update ranklist in the databse. 
+  db.set('rank_list', rankList);
 };
 
 let createRankTable = () => {
@@ -130,6 +133,7 @@ let createRankTable = () => {
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag}.`);
 
+  // Load the rank table (discord message) object from the database.
   let msg_id = await db.get("message_id");
   let channel_id = await db.get("channel_id");
   if (msg_id && channel_id) {
@@ -138,6 +142,10 @@ bot.on('ready', async () => {
     // console.log(rankTable);
     console.log('rank table loaded from database');
   }
+  
+  // Load the rankList array from the database.
+  rankList = await db.get('rank_list');
+  rankList = rankList || [];
 
   if (debug) {
     rankList[0] = { name: 'Jonnnnn' };
