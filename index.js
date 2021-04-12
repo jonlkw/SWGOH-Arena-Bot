@@ -33,13 +33,24 @@ let extractVar = (message) => {
     }
   }
 
+  let convert_payoutIn_to_unix_timestamp = (payoutIn) => {
+    let [hour, minute] = payoutIn.split(":");
+    return (hour*3600 + minute*60)*1e3;
+  };
+
+  let payoutTime = Date.now() + convert_payoutIn_to_unix_timestamp(payoutIn);
+  payoutTime = Math.ceil(payoutTime/1e3/60)*60*1e3; // floor the time to the nearest minute
+
+  // console.log(`${name} payout is at ${payoutTime}`);
+
   let rtn = {
     discordId: discordId,
     userIcon: userIcon,
     name: name,
     movedFrom: movedFrom,
     movedTo: movedTo,
-    payoutIn: payoutIn,
+    payoutIn: payoutIn, // probably don't need this.
+    payoutTime: payoutTime,
     timeLastMoved: Date.now()
   };
 
@@ -88,7 +99,7 @@ let createRankTable = () => {
       continue;
     }
 
-    let { userIcon = '', name = '', movedFrom, movedTo, timeLastMoved } = rankList[i];
+    let { userIcon = '', name = '', movedFrom, movedTo, timeLastMoved, payoutTime } = rankList[i];
     movedFrom = parseInt(movedFrom);
     movedTo = parseInt(movedTo);
 
@@ -109,7 +120,26 @@ let createRankTable = () => {
       n = i+1;
     }
 
-    msg += `${n}. ${userIcon} ${name} \n`;
+    let calculatePayoutAway = (payoutTime) => {
+      // console.log(name, payoutTime);
+      if (payoutTime < Date.now()) { // payout already passed
+        const p = payoutTime+86400e3; // move payout time by 24 hours.
+        payoutTime, rankList[i].payoutTime = p; // update ranklist with the new payout time. 
+        return calculatePayoutAway(p);
+      }
+      let diff = payoutTime - Date.now(); // difference in unix
+      diff = Math.floor(diff/1e3/60); // convert the difference to the nearest minute
+      let m = diff % 60;
+      let h = (diff-m)/60;
+      return h.toString() + ":" + (m<10?"0":"") + m.toString();
+    };
+
+    // make the name bold if payout is within 3 hours. 
+    if (payoutTime - Date.now() < 108e5) {
+      name = `**${name}**`;
+    }
+
+    msg += `${n}. ${userIcon} ${name} ${payoutTime ? `(${calculatePayoutAway(payoutTime)})` : ''} \n`;
 
   }
 
@@ -147,11 +177,11 @@ bot.on('ready', async () => {
   rankList = await db.get('rank_list');
   rankList = rankList || [];
 
-  if (debug) {
-    rankList[0] = { name: 'Jonnnnn' };
-    rankList[1] = { name: 'Aeschyl' };
-    rankList[2] = { name: 'SenseiShNall' };
-  }
+  // if (debug) {
+  //   rankList[0] = { name: 'Jonnnnn' };
+  //   rankList[1] = { name: 'Aeschyl' };
+  //   rankList[2] = { name: 'SenseiShNall' };
+  // }
 });
 
 bot.on('message', async message => {
@@ -177,7 +207,7 @@ bot.on('message', async message => {
       });
     } else {
       info = extractVar(message.content);
-      console.log(info);
+      // console.log(info);
       // update the list
       updateRankList(info);
     }
@@ -198,6 +228,7 @@ bot.on('message', async message => {
     switch (command) {
 
       case 'init':
+        rankList = [];
         let embded = createRankTable();
         rankTable = await message.channel.send(embded);
         // console.log(rankTable);
@@ -205,19 +236,6 @@ bot.on('message', async message => {
         db.set("channel_id", rankTable.channel.id);
         console.log('rank table created');
         break;
-
-      case 'ping':
-        let msg = await message.reply('Pinging...');
-        await msg.edit(`PONG! Message round-trip took ${Date.now() - msg.createdTimestamp}ms.`)
-        break;
-
-      case 'say':
-      case 'repeat':
-        if (args.length > 0)
-          message.channel.send(args.join(' '));
-        else
-          message.reply('You did not send a message to repeat, cancelling command.')
-        break
 
       /* Unless you know what you're doing, don't change this command. */
       case 'help':
