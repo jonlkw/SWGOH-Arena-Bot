@@ -12,6 +12,7 @@ const db = new Database(config.replit_database_url || '');
 let bot = new Client();
 
 let extractVar = (message) => {
+  message = message.replace("  ", " "); // convert double spaces to single spaces
   let [userIcon = '', name = '', movement = '', payoutIn = ''] = message.split('`');
 
   let movedFrom = '', movedTo = '';
