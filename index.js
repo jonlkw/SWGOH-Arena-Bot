@@ -160,10 +160,6 @@ let createRankTable = (rank_list = []) => {
 
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
-
-  db.delete("message_id");
-  db.delete("channel_id");
-  db.delete("rank_list");
 });
 
 bot.on('message', async message => {
