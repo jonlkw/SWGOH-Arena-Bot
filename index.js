@@ -132,7 +132,7 @@ let createRankTable = (rank_list = []) => {
     };
 
     // make the name bold if payout is within 3 hours. 
-    if (payoutTime - Date.now() < 108e5) {
+    if (payoutTime - Date.now() < 108e5 && payoutTime - Date.now() > 0) {
       name = `**${name}**`;
     }
 
@@ -234,8 +234,6 @@ bot.on('message', async message => {
       rankTable = await channel.messages.fetch(rank_table_message_id);
       // console.log(rankTable);
 
-      console.log(rank_list);
-      
       // Create the Embed.
       let embded = createRankTable(rank_list);
 
