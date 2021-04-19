@@ -7,8 +7,6 @@ const debug = config.debug || false;
 
 let rankTable;
 
-let rankList = [];
-
 const db = new Database(config.replit_database_url || '');
 
 let bot = new Client();
@@ -45,34 +43,34 @@ let extractVar = (message) => {
 
   let rtn = {
     discordId: discordId,
-    userIcon: userIcon,
+    userIcon: userIcon, // emoji
     name: name,
-    movedFrom: movedFrom,
-    movedTo: movedTo,
+    movedFrom: movedFrom, // old rank
+    movedTo: movedTo, // new rank
     payoutIn: payoutIn, // probably don't need this.
-    payoutTime: payoutTime,
+    payoutTime: payoutTime, // payout time in unix timestamp. 
     timeLastMoved: Date.now()
   };
 
   return rtn;
 }
 
-let updateRankList = (movement_array) => {
+let updateRankList = (movement_array, rank_list = []) => {
 
   // do nothing if the player is already in that rank. 
-  if (rankList[movement_array.movedTo - 1] && rankList[movement_array.movedTo - 1].name == movement_array.name) return;
+  if (rank_list[movement_array.movedTo - 1] && rank_list[movement_array.movedTo - 1].name == movement_array.name) return rank_list;
 
-  // add movement to ranklist
-  rankList[movement_array.movedTo - 1] = movement_array;
+  // add movement to rank_list
+  rank_list[movement_array.movedTo - 1] = movement_array;
 
   // delete previous position.
-  if (rankList[movement_array.movedFrom - 1] && rankList[movement_array.movedFrom - 1].name == movement_array.name) delete rankList[movement_array.movedFrom - 1];
+  if (rank_list[movement_array.movedFrom - 1] && rank_list[movement_array.movedFrom - 1].name == movement_array.name) delete rank_list[movement_array.movedFrom - 1];
 
-  // update ranklist in the databse. 
-  db.set('rank_list', rankList);
+  return rank_list;
+
 };
 
-let createRankTable = () => {
+let createRankTable = (rank_list = []) => {
   let fields = [];
   let msg = '';
 
@@ -81,9 +79,9 @@ let createRankTable = () => {
     fields.push({name: `${l*10+1}-${l*10+10}`, value: msg, inline: false});
   }
 
-  if (rankList.length <= 0) msg = '1. ';
+  if (rank_list.length <= 0) msg = '1. ';
 
-  for (let i = 0; i < rankList.length; i++) {
+  for (let i = 0; i < rank_list.length; i++) {
 
     // for every 10 increment, push to the fields array and start fresh
     if (i % 10 == 0 && msg) {
@@ -94,12 +92,12 @@ let createRankTable = () => {
     // stop at rank 50. 
     if (i >= 50) break;
 
-    if (!rankList[i]) {
+    if (!rank_list[i]) {
       msg += (i + 1) + ". \n";
       continue;
     }
 
-    let { userIcon = '', name = '', movedFrom, movedTo, timeLastMoved, payoutTime } = rankList[i];
+    let { userIcon = '', name = '', movedFrom, movedTo, timeLastMoved, payoutTime } = rank_list[i];
     movedFrom = parseInt(movedFrom);
     movedTo = parseInt(movedTo);
 
@@ -123,9 +121,8 @@ let createRankTable = () => {
     let calculatePayoutAway = (payoutTime) => {
       // console.log(name, payoutTime);
       if (payoutTime < Date.now()) { // payout already passed
-        const p = payoutTime+86400e3; // move payout time by 24 hours.
-        payoutTime, rankList[i].payoutTime = p; // update ranklist with the new payout time. 
-        return calculatePayoutAway(p);
+        payoutTime += 86400e3; // move payout time by 24 hours.
+        return calculatePayoutAway(payoutTime);
       }
       let diff = payoutTime - Date.now(); // difference in unix
       diff = Math.floor(diff/1e3/60); // convert the difference to the nearest minute
@@ -139,7 +136,8 @@ let createRankTable = () => {
       name = `**${name}**`;
     }
 
-    msg += `${n}. ${userIcon} ${name} ${payoutTime ? `(${calculatePayoutAway(payoutTime)})` : ''} \n`;
+    const payoutAway = calculatePayoutAway(payoutTime);
+    msg += `${n}. ${userIcon} ${name} ${payoutTime ? `(${payoutAway})` : ''} \n`;
 
   }
 
@@ -161,7 +159,7 @@ let createRankTable = () => {
 };
 
 bot.on('ready', async () => {
-  console.log(`Logged in as ${bot.user.tag}.`);
+  console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
 
   // Load the rank table (discord message) object from the database.
   let msg_id = await db.get("message_id");
@@ -173,49 +171,79 @@ bot.on('ready', async () => {
     console.log('rank table loaded from database');
   }
   
-  // Load the rankList array from the database.
-  rankList = await db.get('rank_list');
-  rankList = rankList || [];
+  // Load the rank_list array from the database.
+  let rank_list = await db.get('rank_list');
 
-  // if (debug) {
-  //   rankList[0] = { name: 'Jonnnnn' };
-  //   rankList[1] = { name: 'Aeschyl' };
-  //   rankList[2] = { name: 'SenseiShNall' };
-  // }
+  // console.log(bot.guilds);
+  // bot.guilds.cache.forEach(async (guild) => {
+  //   // console.log(guild.id);
+  //   await db.set(guild.id, {
+  //     rank_table_channel_id: channel_id,
+  //     rank_table_message_id: msg_id,
+  //     rank_list: rank_list
+  //   });
+  // });
 });
 
 bot.on('message', async message => {
   // stop execution if the message came from the bot. 
   if (message.author == bot.user) return;
-  
-  // if (debug) console.log(message);
 
+  // if (debug) console.log(message);
+  
   if (
     (message.author.bot && rankTable || debug) &&
     message.content.includes('climbed from') || 
     message.content.includes('dropped from') ||
     message.content.includes('is at')
     ) {
-    let info = {};
+
     if (debug) console.log(message.content);
+
+    // get data from database.
+    const guild_id = message.guild.id;
+    let {rank_table_channel_id, rank_table_message_id, rank_list} = await db.get(guild_id);
+
+    // update rank list
     if (message.content.includes('is at')) {
       let messages = message.content.split("\n");
       messages.forEach((element) => {
-        info = extractVar(element);
+        const info = extractVar(element);
         // update the list
-        updateRankList(info);
+        rank_list = updateRankList(info, rank_list);
       });
     } else {
-      info = extractVar(message.content);
+      const info = extractVar(message.content);
       // console.log(info);
       // update the list
-      updateRankList(info);
+      rank_list = updateRankList(info, rank_list);
     }
-    // Create the Embed.
-    let embded = createRankTable();
+    
+    // update database with new rank list
+    db.set(guild_id, {
+      rank_table_channel_id: rank_table_channel_id,
+      rank_table_message_id: rank_table_message_id,
+      rank_list: rank_list
+    });
 
-    // update the rankable on discord. 
-    await rankTable.edit(embded);
+    /**
+     * Update the rank table
+     */
+    if (rank_table_channel_id && rank_table_message_id) {
+      let channel = await bot.channels.fetch(rank_table_channel_id);
+      rankTable = await channel.messages.fetch(rank_table_message_id);
+      // console.log(rankTable);
+
+      console.log(rank_list);
+      
+      // Create the Embed.
+      let embded = createRankTable(rank_list);
+
+      // update the rankable on discord. 
+      await rankTable.edit(embded);
+    } else {
+      console.log(`Could not find ranktable from channel id and message id. channel_id: ${rank_table_channel_id}, message_id: ${rank_table_message_id}`);
+    }
   }
 
   if (message.author.id != '220562478910799872') return;
@@ -228,12 +256,26 @@ bot.on('message', async message => {
     switch (command) {
 
       case 'init':
-        rankList = [];
-        let embded = createRankTable();
+
+        // // get data from database.
+        // const guild_id = message.guild.id;
+        // let {rank_table_channel_id, rank_table_message_id, rank_list} = await db.get(guild_id);
+
+        const guild_id = message.guild.id;
+
+        let rank_list = [];
+        let embded = createRankTable(rank_list);
         rankTable = await message.channel.send(embded);
         // console.log(rankTable);
         db.set("message_id", rankTable.id);
         db.set("channel_id", rankTable.channel.id);
+
+        // update database
+        db.set(guild_id, {
+          rank_table_channel_id: rankTable.channel.id,
+          rank_table_message_id: rankTable.id,
+          rank_list: rank_list
+        });
         console.log('rank table created');
         break;
 
