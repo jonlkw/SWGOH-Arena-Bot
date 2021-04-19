@@ -161,28 +161,9 @@ let createRankTable = (rank_list = []) => {
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
 
-  // Load the rank table (discord message) object from the database.
-  let msg_id = await db.get("message_id");
-  let channel_id = await db.get("channel_id");
-  if (msg_id && channel_id) {
-    let channel = await bot.channels.fetch(channel_id);
-    rankTable = await channel.messages.fetch(msg_id);
-    // console.log(rankTable);
-    console.log('rank table loaded from database');
-  }
-  
-  // Load the rank_list array from the database.
-  let rank_list = await db.get('rank_list');
-
-  // console.log(bot.guilds);
-  // bot.guilds.cache.forEach(async (guild) => {
-  //   // console.log(guild.id);
-  //   await db.set(guild.id, {
-  //     rank_table_channel_id: channel_id,
-  //     rank_table_message_id: msg_id,
-  //     rank_list: rank_list
-  //   });
-  // });
+  db.delete("message_id");
+  db.delete("channel_id");
+  db.delete("rank_list");
 });
 
 bot.on('message', async message => {
