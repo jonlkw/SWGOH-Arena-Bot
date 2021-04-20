@@ -243,8 +243,6 @@ bot.on('message', async message => {
         let embded = createRankTable(rank_list);
         rankTable = await message.channel.send(embded);
         // console.log(rankTable);
-        db.set("message_id", rankTable.id);
-        db.set("channel_id", rankTable.channel.id);
 
         // update database
         db.set(guild_id, {
