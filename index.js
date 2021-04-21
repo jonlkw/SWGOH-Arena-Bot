@@ -183,19 +183,12 @@ bot.on('message', async message => {
     let {rank_table_channel_id, rank_table_message_id, rank_list} = await db.get(guild_id);
 
     // update rank list
-    if (message.content.includes('is at')) {
-      let messages = message.content.split("\n");
-      messages.forEach((element) => {
-        const info = extractVar(element);
-        // update the list
-        rank_list = updateRankList(info, rank_list);
-      });
-    } else {
-      const info = extractVar(message.content);
-      // console.log(info);
+    let messages = message.content.split("\n");
+    messages.forEach((element) => {
+      const info = extractVar(element);
       // update the list
       rank_list = updateRankList(info, rank_list);
-    }
+    });
     
     // update database with new rank list
     db.set(guild_id, {
