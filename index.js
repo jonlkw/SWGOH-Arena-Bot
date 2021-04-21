@@ -183,7 +183,7 @@ let createRankTable = (rank_list = []) => {
 
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
-  logger.log('info', `bot started on ${new Date(Date.now())}`)
+  logger.log('info', `bot started`);
 });
 
 bot.on('message', async message => {
