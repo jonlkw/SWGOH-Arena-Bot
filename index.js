@@ -25,8 +25,6 @@ const logger = createLogger({
   ]
 });
 
-console.log(createLogger);
-
 const debug = config.debug || false;
 
 let rankTable;
@@ -185,6 +183,7 @@ let createRankTable = (rank_list = []) => {
 
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
+  logger.log('info', `bot started on ${new Date(Date.now())}`)
 });
 
 bot.on('message', async message => {
