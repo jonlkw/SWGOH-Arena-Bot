@@ -1,4 +1,5 @@
 node_modules/
+logs/
 config.js
 db.js
 db.json

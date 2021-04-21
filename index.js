@@ -2,6 +2,30 @@ const { Client, MessageEmbed } = require('discord.js');
 const config = require('./config');
 const commands = require('./help');
 const Database = require("@replit/database");
+const { createLogger, format, transports } = require('winston');
+
+const logger = createLogger({
+  level: 'info',
+  format: format.combine(
+    format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+    format.errors({ stack: true }),
+    format.splat(),
+    format.json()
+  ),
+  defaultMeta: { service: 'arena-bot' },
+  transports: [
+    //
+    // - Write to all logs with level `info` and below to `quick-start-combined.log`.
+    // - Write all logs error (and below) to `quick-start-error.log`.
+    //
+    new transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new transports.File({ filename: 'logs/arena-message.log' })
+  ]
+});
+
+console.log(createLogger);
 
 const debug = config.debug || false;
 
@@ -181,6 +205,11 @@ bot.on('message', async message => {
     // get data from database.
     const guild_id = message.guild.id;
     let {rank_table_channel_id, rank_table_message_id, rank_list} = await db.get(guild_id);
+
+    logger.log({
+      level: 'info', 
+      message: `${guild_id}, ${message.content}`
+    });
 
     // update rank list
     let messages = message.content.split("\n");
