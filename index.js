@@ -51,6 +51,8 @@ let extractVar = (message) => {
     if (array[1]) {
       [discordId, userIcon] = array;
       discordId += '>';
+    } else if (array[0].includes('<@')) { // if no emoji is present. 
+      [discordId, userIcon] = [userIcon, discordId];
     }
   }
 
@@ -74,6 +76,8 @@ let extractVar = (message) => {
     payoutTime: payoutTime, // payout time in unix timestamp. 
     timeLastMoved: Date.now()
   };
+
+  // console.log(rtn);
 
   return rtn;
 }
@@ -184,6 +188,8 @@ let createRankTable = (rank_list = []) => {
 bot.on('ready', async () => {
   console.log(`Logged in as ${bot.user.tag} on ${new Date(Date.now())}.`);
   logger.log('info', `bot started`);
+  // let channel = await bot.channels.fetch('525749396696989699');
+  // channel.send('<:jonnnnn:829581695685623829>`Jonnnnn` climbed from 42 to 32. payout in `02:33`');
 });
 
 bot.on('message', async message => {
