@@ -3,6 +3,7 @@ const config = require('./config');
 const commands = require('./help');
 const Database = require("@replit/database");
 const { createLogger, format, transports } = require('winston');
+const arena = require('./arena');
 
 const logger = createLogger({
   level: 'info',
@@ -279,6 +280,11 @@ bot.on('message', async message => {
         });
         console.log('rank table created');
         break;
+
+        case 'arena':
+          let rank = args[0];
+          console.log(arena.maxJump(rank));
+          break;
 
       /* Unless you know what you're doing, don't change this command. */
       case 'help':
