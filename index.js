@@ -284,25 +284,31 @@ bot.on('message', async message => {
         case "arena":
           {
             let rank = args[0];
-            let max_jump_array = arena.maxJump(rank);
-            let msg = `Max Jump information: ${rank} > `;
-            max_jump_array.forEach((rank) => {
-              if (rank == 1) {
-                msg += `${rank}.`;
-              } else {
-                msg += `${rank} > `;
-              }
-            });
-            const embed = {
-              // title: `Max Jump: ${rank}`,
-              fields: [
-                {
-                  name: `From rank __**${rank}**__, it will take you at least __**${max_jump_array.length}**__ battles to get to 1st place.`,
-                  value: msg,
-                },
-              ],
-            };
-            message.channel.send({ content: message.author, embed });
+            if (rank >= 1 && rank <= 50) {
+              let max_jump_array = arena.maxJump(rank);
+              let msg = `Max Jump information: ${rank} > `;
+              max_jump_array.forEach((rank) => {
+                if (rank == 1) {
+                  msg += `${rank}.`;
+                } else {
+                  msg += `${rank} > `;
+                }
+              });
+              const embed = {
+                // title: `Max Jump: ${rank}`,
+                fields: [
+                  {
+                    name: `From rank __**${rank}**__, it will take you at least __**${max_jump_array.length}**__ battles to get to 1st place.`,
+                    value: msg,
+                  },
+                ],
+              };
+              message.channel.send({ content: message.author, embed });
+            } else if (rank > 50) {
+              message.channel.send(`No max jump data for rank ${rank}. Only top 50 ranks are supported currently. `);
+            } else {
+              message.channel.send(`Invalid rank provided.`);
+            }
           }
           break;
 
