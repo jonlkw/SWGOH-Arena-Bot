@@ -72,13 +72,13 @@ let extractVar = (message) => {
   // console.log(`${name} payout is at ${payoutTime}`);
 
   let rtn = {
-    discordId: discordI,
-    userIcon: userIcon, // emoji
-    name: name,
-    movedFrom: movedFrom, // old rank
-    movedTo: movedTo, // new rank
-    payoutIn: payoutIn, // probably don't need this.
-    payoutTime: payoutTime, // payout time in unix timestamp.
+    discordId,
+    userIcon, // emoji
+    name,
+    movedFrom, // old rank
+    movedTo, // new rank
+    payoutIn, // probably don't need this.
+    payoutTime, // payout time in unix timestamp.
     timeLastMoved: Date.now(),
   };
 
