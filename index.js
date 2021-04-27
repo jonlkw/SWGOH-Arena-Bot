@@ -72,7 +72,7 @@ let extractVar = (message) => {
   // console.log(`${name} payout is at ${payoutTime}`);
 
   let rtn = {
-    discordId: discordId,
+    discordId: discordI,
     userIcon: userIcon, // emoji
     name: name,
     movedFrom: movedFrom, // old rank
@@ -321,7 +321,8 @@ bot.on("message", async (message) => {
       case "arena":
         {
           let rank = args[0];
-          if (rank >= 1 && rank <= 50) {
+          const limit = 100;
+          if (rank >= 1 && rank <= limit) {
             let max_jump_array = arena.maxJump(rank);
             let msg = `Max Jump information: ${rank} > `;
             max_jump_array.forEach((rank) => {
@@ -340,10 +341,10 @@ bot.on("message", async (message) => {
                 },
               ],
             };
-            message.channel.send({ content: message.author, embed });
-          } else if (rank > 50) {
+            message.channel.send({ embed });
+          } else if (rank > limit) {
             message.channel.send(
-              `No max jump data for rank ${rank}. Only top 50 ranks are supported currently. `
+              `No max jump data for rank ${rank}. Only top ${limit} ranks are supported currently. `
             );
           } else {
             message.channel.send(`Invalid rank provided.`);
