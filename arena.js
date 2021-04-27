@@ -1,4 +1,4 @@
-const max_jump_data = {
+const max_jump_data_old = {
   1: 1,
   2: 1,
   3: 1,
@@ -49,22 +49,44 @@ const max_jump_data = {
   48: 38,
   49: 39,
   50: 40,
+  92: 76,
 };
 
+const createMaxJumpDataObj = (limit) => {
+  let obj = {};
+
+  for (let i = 1; i <= limit; i++) {
+    if (i <= 5) obj[i] = 1;
+    else if (i <= 12) obj[i] = i - 4;
+    else if (i <= 18) obj[i] = i - 5;
+    else if (i <= 24) obj[i] = i - 6;
+    else if (i <= 32) obj[i] = i - 7;
+    else if (i <= 38) obj[i] = i - 8;
+    else if (i <= 40) obj[i] = i - 9;
+    else if (i <= 70) obj[i] = i - 10;
+    else if (i <= 90) obj[i] = i - 13;
+    else obj[i] = i - 16;
+  }
+
+  return obj;
+};
+
+const max_jump_data = createMaxJumpDataObj(100);
+
 /**
-* returns an array of max jumps from the current rank
-* @param {*} rank 
-*/
-let maxJump = (rank) => {
+ * returns an array of max jumps from the current rank
+ * @param {*} rank
+ */
+const maxJump = (rank) => {
   let array = [];
   return recursion(rank, array);
 
   function recursion(rank, arr) {
-      if(rank == 1) return arr;
-      const new_rank = max_jump_data[rank];
-      arr.push(new_rank);
-      return recursion(new_rank, arr);
-  };
+    if (rank == 1) return arr;
+    const new_rank = max_jump_data[rank];
+    arr.push(new_rank);
+    return recursion(new_rank, arr);
+  }
 };
 
-module.exports = {maxJump};
+module.exports = { maxJump };
