@@ -289,8 +289,6 @@ bot.on("message", async (message) => {
     }
   }
 
-  if (message.author.id != "220562478910799872") return;
-
   // Check for command
   if (message.content.startsWith(config.prefix)) {
     let args = message.content.slice(config.prefix.length).split(" ");
@@ -298,9 +296,7 @@ bot.on("message", async (message) => {
 
     switch (command) {
       case "init":
-        // // get data from database.
-        // const guild_id = message.guild.id;
-        // let {rank_table_channel_id, rank_table_message_id, rank_list} = await db.get(guild_id);
+        if (message.author.id != "220562478910799872") return;
 
         const guild_id = message.guild.id;
 
@@ -344,7 +340,7 @@ bot.on("message", async (message) => {
             message.channel.send({ embed });
           } else if (rank > limit) {
             message.channel.send(
-              `No max jump data for rank ${rank}. Only top ${limit} ranks are supported currently. `
+              `No max jump data for rank ${rank}. Only top ${limit} ranks are supported currently.`
             );
           } else {
             message.channel.send(`Invalid rank provided.`);
@@ -354,6 +350,8 @@ bot.on("message", async (message) => {
 
       /* Unless you know what you're doing, don't change this command. */
       case "help":
+        if (message.author.id != "220562478910799872") return;
+
         let embed = new MessageEmbed()
           .setTitle("HELP MENU")
           .setColor("GREEN")
