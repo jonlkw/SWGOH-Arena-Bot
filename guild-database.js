@@ -10,9 +10,9 @@ module.exports = class GuildDatabase {
     this._connect(uri);
 
     const guildSchema = new mongoose.Schema({
-      _id: Number,
-      rank_table_channel_id: Number,
-      rank_table_message_id: Number,
+      _id: String, // Discord IDs need to be stored as string because the integers are too high.
+      rank_table_channel_id: String,
+      rank_table_message_id: String,
       rank_list: Array,
     });
 
@@ -30,6 +30,7 @@ module.exports = class GuildDatabase {
     mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      useFindAndModify: false,
     });
 
     const db = mongoose.connection;
@@ -65,7 +66,7 @@ module.exports = class GuildDatabase {
     }
 
     //   await result.overwrite(guild).save();
-    console.log(result);
+    // console.log(data, result);
 
     return result;
   }
