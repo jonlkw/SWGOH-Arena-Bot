@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 module.exports = class GuildDatabase {
   #model;
 
-  constructor(uri, model = this.guild_model) {
+  constructor(uri) {
     this._connect(uri);
 
     const guildSchema = new mongoose.Schema({
