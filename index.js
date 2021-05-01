@@ -1,9 +1,12 @@
 const { Client, MessageEmbed } = require("discord.js");
+const dotenv = require("dotenv").config();
 const config = require("./config");
 const commands = require("./help");
 const Database = require("@replit/database");
 const { createLogger, format, transports } = require("winston");
 const arena = require("./arena");
+const GuildDatabase = require("./guild-database");
+const rank = require("./models/rank");
 
 const logger = createLogger({
   level: "info",
@@ -31,6 +34,8 @@ const debug = config.debug || false;
 let rankTable;
 
 const db = new Database(config.replit_database_url || "");
+
+const dbm = new GuildDatabase(config.database_url, rank);
 
 let bot = new Client();
 
@@ -91,7 +96,8 @@ let updateRankList = (movement_array, rank_list = []) => {
   // do nothing if the player is already in that rank.
   if (
     rank_list[movement_array.movedTo - 1] &&
-    rank_list[movement_array.movedTo - 1].name == movement_array.name
+    rank_list[movement_array.movedTo - 1].name == movement_array.name &&
+    movement_array.movedFrom // movedFrom
   )
     return rank_list;
 
@@ -269,6 +275,13 @@ bot.on("message", async (message) => {
       rank_list: rank_list,
     });
 
+    // add to mongodb
+    dbm.set(guild_id, {
+      rank_table_channel_id: rank_table_channel_id,
+      rank_table_message_id: rank_table_message_id,
+      rank_list: rank_list,
+    });
+
     /**
      * Update the rank table
      */
@@ -307,6 +320,12 @@ bot.on("message", async (message) => {
 
         // update database
         db.set(guild_id, {
+          rank_table_channel_id: rankTable.channel.id,
+          rank_table_message_id: rankTable.id,
+          rank_list: rank_list,
+        });
+
+        dbm.set(guild_id, {
           rank_table_channel_id: rankTable.channel.id,
           rank_table_message_id: rankTable.id,
           rank_list: rank_list,

@@ -12,9 +12,15 @@
   "dependencies": {
     "@replit/database": "^2.0.1",
     "discord.js": "^12.2.0",
-    "eslint": "^7.24.0",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "mongodb": "^3.6.6",
+    "mongoose": "^5.12.6",
     "prettier": "^2.2.1",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^7.25.0",
+    "eslint-config-google": "^0.14.0"
   }
 }
