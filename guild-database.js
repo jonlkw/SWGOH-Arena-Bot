@@ -4,21 +4,9 @@ const mongoose = require("mongoose");
  * Guild Database class, hosted on mongoDB and using mongoose schema.
  */
 module.exports = class GuildDatabase {
-  #model;
-
-  constructor(uri) {
+  constructor(uri, model) {
     this._connect(uri);
-
-    const guildSchema = new mongoose.Schema({
-      _id: String, // Discord IDs need to be stored as string because the integers are too high.
-      rank_table_channel_id: String,
-      rank_table_message_id: String,
-      rank_list: Array,
-    });
-
-    const guildModel = mongoose.model("Guild", guildSchema);
-
-    this.#model = guildModel;
+    this.model = model;
   }
 
   /**
@@ -44,7 +32,7 @@ module.exports = class GuildDatabase {
    * @returns data from databse
    */
   async get(guild_id) {
-    return this.#model.findById(guild_id);
+    return this.model.findById(guild_id);
   }
 
   /**
@@ -54,13 +42,13 @@ module.exports = class GuildDatabase {
    * @returns new data from database.
    */
   async set(guild_id, data) {
-    let result = await this.#model.findByIdAndUpdate(guild_id, data, {
+    let result = await this.model.findByIdAndUpdate(guild_id, data, {
       // overwrite: true,
       new: true,
     });
 
     if (!result) {
-      result = new this.#model(data);
+      result = new this.model(data);
       result._id = guild_id;
       await result.save();
     }

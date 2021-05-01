@@ -6,6 +6,7 @@ const Database = require("@replit/database");
 const { createLogger, format, transports } = require("winston");
 const arena = require("./arena");
 const GuildDatabase = require("./guild-database");
+const rank = require("./models/rank");
 
 const logger = createLogger({
   level: "info",
@@ -34,7 +35,7 @@ let rankTable;
 
 const db = new Database(config.replit_database_url || "");
 
-const dbm = new GuildDatabase(config.database_url);
+const dbm = new GuildDatabase(config.database_url, rank);
 
 let bot = new Client();
 
@@ -275,7 +276,11 @@ bot.on("message", async (message) => {
     });
 
     // add to mongodb
-    dbm.set(guild_id, { rank_list: rank_list });
+    dbm.set(guild_id, {
+      rank_table_channel_id: rank_table_channel_id,
+      rank_table_message_id: rank_table_message_id,
+      rank_list: rank_list,
+    });
 
     /**
      * Update the rank table
