@@ -253,7 +253,7 @@ bot.on("message", async (message) => {
       rank_table_channel_id,
       rank_table_message_id,
       rank_list,
-    } = await db.get(guild_id);
+    } = await dbm.get(guild_id);
 
     logger.log({
       level: "info",
@@ -309,7 +309,16 @@ bot.on("message", async (message) => {
 
     switch (command) {
       case "init":
-        if (message.author.id != "220562478910799872") return;
+        // Return if the user is not an admin.
+        if (
+          message.author.id != "220562478910799872" ||
+          !message.member.hasPermission("manage_guild")
+        ) {
+          await message.channel.send(
+            `${message.author} You do not have the necesary permissions to run this command. Only admins or users with the "Manage Server" permission can run this command.`
+          );
+          return;
+        }
 
         const guild_id = message.guild.id;
 
@@ -369,8 +378,6 @@ bot.on("message", async (message) => {
 
       /* Unless you know what you're doing, don't change this command. */
       case "help":
-        if (message.author.id != "220562478910799872") return;
-
         let embed = new MessageEmbed()
           .setTitle("HELP MENU")
           .setColor("GREEN")
