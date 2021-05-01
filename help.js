@@ -1,15 +1,15 @@
 module.exports = {
-  'help': {
-    description: 'Shows the list of commands or help on specified command.',
-    format: 'help [command-name]'
+  init: {
+    description:
+      "Initialize the rank table (in the channel the command is typed). If it already exists, the previous ranktable will stop working and this one will replace the old one.",
+    format: "init",
   },
-  'ping': {
-    description: 'Checks connectivity with discord\'s servers.',
-    format: 'ping'
+  arena: {
+    description: "Shows max-jump information from current rank",
+    format: "arena [rank]",
   },
-  'say': {
-    aliases: ['repeat'],
-    description: 'Repeats whatever is said.',
-    format: 'say <message>'
-  }
-}
+  help: {
+    description: "Shows the list of commands or help on specified command.",
+    format: "help [command-name]",
+  },
+};
