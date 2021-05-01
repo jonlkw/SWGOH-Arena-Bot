@@ -4,3 +4,4 @@ config.js
 db.js
 db.json
 .env
+test/
