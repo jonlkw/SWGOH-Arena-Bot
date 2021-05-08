@@ -2,8 +2,21 @@ const { MessageEmbed } = require("discord.js");
 const config = require("./config");
 
 let extractVar = (message) => {
-  // `926246141`|`UMakeMeHurl` is at 4. payout in `18:42`
+  /**
+   * Examples.
+  `926246141`|`UMakeMeHurl` is at 4. payout in `18:42`
+  :flag_us:`LastBossKiller` climbed from 4 to 1. payout in `00:50`
+  */
   message = message.replace("  ", " "); // convert double spaces to single spaces
+
+  // rotbot format
+  let allyCode = "";
+  let a = message.split("|");
+  if (a[1]) {
+    allyCode = a[0].replace(/`/g, "");
+    message = a[1];
+  }
+
   let [userIcon = "", name = "", movement = "", payoutIn = ""] = message.split(
     "`"
   );
@@ -40,6 +53,7 @@ let extractVar = (message) => {
   // console.log(`${name} payout is at ${payoutTime}`);
 
   let rtn = {
+    allyCode,
     discordId,
     userIcon, // emoji
     name,
@@ -50,7 +64,7 @@ let extractVar = (message) => {
     timeLastMoved: Date.now(),
   };
 
-  // console.log(rtn);
+  console.log(rtn);
 
   return rtn;
 };
