@@ -91,6 +91,10 @@ let updateRankList = (movement_array, rank_list = []) => {
   return rank_list;
 };
 
+const getDotggProfile = (allyCode) => {
+  return `https://swgoh.gg/p/${allyCode}/`;
+};
+
 let createRankTable = (rank_list = []) => {
   let fields = [];
   let msg = "";
@@ -124,6 +128,7 @@ let createRankTable = (rank_list = []) => {
     let {
       userIcon = "",
       name = "",
+      allyCode,
       movedFrom,
       movedTo,
       timeLastMoved,
@@ -170,6 +175,10 @@ let createRankTable = (rank_list = []) => {
     // make the name bold if payout is within 3 hours.
     if (payoutTime - Date.now() < 108e5 && payoutTime - Date.now() > 0) {
       name = `**${name}**`;
+    }
+
+    if (allyCode) {
+      name = `[${name}](${getDotggProfile(allyCode)})`;
     }
 
     const payoutAway = calculatePayoutAway(payoutTime);
