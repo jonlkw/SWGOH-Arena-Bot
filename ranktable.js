@@ -1,5 +1,9 @@
 const { MessageEmbed } = require("discord.js");
 const config = require("./config");
+const db = require("./src/db-connect");
+const logger = require("./src/logger");
+
+const debug = config.debug;
 
 let extractVar = (message) => {
   /**
@@ -212,4 +216,85 @@ let createRankTable = (rank_list = []) => {
   return embed;
 };
 
-module.exports = { extractVar, updateRankList, createRankTable };
+const execInitTable = async (message, args) => {
+  // Return if the user is not an admin.
+  if (
+    message.author.id != "220562478910799872" ||
+    !message.member.hasPermission("MANAGE_GUILD")
+  ) {
+    await message.channel.send(
+      `${message.author} You do not have the necesary permissions to run this command. Only admins or users with the "Manage Server" permission can run this command.`
+    );
+    return;
+  }
+
+  const guild_id = message.guild.id;
+
+  // Initialize the rank table.
+  let rank_list = [];
+  const embded = createRankTable(rank_list);
+  rankTable = await message.channel.send(embded);
+  // console.log(rankTable);
+
+  // update database
+  db.set(guild_id, {
+    rank_table_channel_id: rankTable.channel.id,
+    rank_table_message_id: rankTable.id,
+    rank_list: rank_list,
+  });
+
+  console.log("rank table created");
+};
+
+const execUpdateTable = async (message, client) => {
+  if (debug) console.log(message.content);
+
+  // get data from database.
+  const guild_id = message.guild.id;
+  let {
+    rank_table_channel_id,
+    rank_table_message_id,
+    rank_list,
+  } = await db.get(guild_id);
+
+  logger.log({
+    level: "info",
+    message: `${guild_id}, ${message.content}`,
+  });
+
+  // update rank list
+  let messages = message.content.split("\n");
+  messages.forEach((element) => {
+    const info = extractVar(element);
+    // update the list
+    rank_list = updateRankList(info, rank_list);
+  });
+
+  // add to mongodb
+  db.set(guild_id, {
+    rank_table_channel_id: rank_table_channel_id,
+    rank_table_message_id: rank_table_message_id,
+    rank_list: rank_list,
+  });
+
+  /**
+   * Update the rank table
+   */
+  if (rank_table_channel_id && rank_table_message_id) {
+    let channel = await client.channels.fetch(rank_table_channel_id);
+    rankTable = await channel.messages.fetch(rank_table_message_id);
+    // console.log(rankTable);
+
+    // Create the Embed.
+    let embded = createRankTable(rank_list);
+
+    // update the rankable on discord.
+    await rankTable.edit(embded);
+  } else {
+    console.log(
+      `Could not find ranktable from channel id and message id. channel_id: ${rank_table_channel_id}, message_id: ${rank_table_message_id}`
+    );
+  }
+};
+
+module.exports = { execInitTable, execUpdateTable };
