@@ -1,7 +1,7 @@
 const { MessageEmbed } = require("discord.js");
-const config = require("./config");
-const db = require("./src/db-connect");
-const logger = require("./src/logger");
+const config = require("../config");
+const db = require("./db-connect");
+const logger = require("./logger");
 
 const debug = config.debug;
 

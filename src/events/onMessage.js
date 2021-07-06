@@ -1,5 +1,5 @@
 const { debug = false, prefix } = require("../../config");
-const arenaTable = require("../../ranktable");
+const arenaTable = require("../ranktable");
 const arena = require("../commands/arena");
 const doHelp = require("../commands/help");
 

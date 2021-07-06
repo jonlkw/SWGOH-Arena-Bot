@@ -1,7 +1,6 @@
 const { Client, MessageEmbed } = require("discord.js");
 const dotenv = require("dotenv").config();
 const config = require("./config");
-const commands = require("./help");
 const logger = require("./src/logger");
 const onMessage = require("./src/events/onMessage");
 

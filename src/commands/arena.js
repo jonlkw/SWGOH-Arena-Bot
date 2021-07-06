@@ -1,4 +1,4 @@
-const arena = require("../../arena");
+const arena = require("../arena");
 
 module.exports = (message, args) => {
   let rank = args[0];
