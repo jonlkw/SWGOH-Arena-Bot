@@ -37,7 +37,6 @@ const command = (message, client) => {
 };
 
 const onMessage = (message, client) => {
-  console.log(message);
   // stop execution if the message came from the bot.
   if (message.author == client.user) return;
 

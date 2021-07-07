@@ -8,14 +8,14 @@ const { debug = false } = config;
 
 const client = new Client();
 
-client.on("ready", async () => {
+client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag} on ${new Date(Date.now())}.`);
   logger.log("info", `bot started`);
   // let channel = await bot.channels.fetch('525749396696989699');
   // channel.send('<:jonnnnn:829581695685623829>`Jonnnnn` climbed from 42 to 32. payout in `02:33`');
 });
 
-client.on("message", async (message) => {
+client.on("message", (message) => {
   onMessage(message, client);
 });
 
